@@ -1,0 +1,24 @@
+[package]
+version = "0.1.0"
+name = "frontend"
+authors = ["Geoff Donoghue"]
+license = "MIT"
+readme = "./README.md"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.18"
+
+[dependencies]
+seed = "0.8.0"
+serde = { version = "1.0.126", features = ["derive"] }
+serde_json = "1.0.64"
+uuid = { version = "0.8.2", features = ["serde", "v4"] }
+shared = { path = "../shared"}
+http-types = "2.4"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Os']
