@@ -9,36 +9,102 @@ use crate::flash::FlashMsg;
 
 // `view` describes what to display.
 pub fn view(model: &Model) -> Vec<Node<Msg>> {
+    nodes![view_navbar(model), view_page(model), flash(model), ]
+}
 
-    nodes![flash(model), nav(model), view_page(model),]
+fn view_navbar(model: &Model) -> Node<Msg> {
+    nav![
+        C!["navbar", "is-link"],
+        attrs!{
+            At::from("role") => "navigation",
+            At::AriaLabel => "main navigation",
+        },
+        view_navbar_menu(model),
+    ]
+}
 
-    // let url = Urls::new(&model.base_url);
-    //     // div![
-    //     //     "Enter address: ", input![
-    //     //         el_ref(&model.address),
-    //     //         attrs!{At::Placeholder => "Address"},
-    //     //     ]
-    //     // ],
-    //     // div![
-    //     //     button![ev(Ev::Click, |_| Msg::CreateUserFormSubmitted), "Submit"],
-    //     //     // model
-    //     //     //     .user
-    //     //     //     .as_ref()
-    //     //     //     .map(|user| div![format!("User: {:?}", user)])
-    //     // ],
-    //     // div![
-    //     //     C!["balance"],
-    //     //     format!("Address balance: {}", x),
-    //     //     // button![ev(Ev::Click, |_| Msg::GetBalance),],
-    //     // ]
-    //     // div![
-    //     //     button![ev(Ev::Click, |_| Msg::Fetch), "Fetch user"],
-    //     //     model
-    //     //         .user
-    //     //         .as_ref()
-    //     //         .map(|user| div![format!("User: {:?}", user)])
-    //     // ],
-    // ]
+
+fn view_navbar_menu(model: &Model) -> Node<Msg> {
+    div![
+        C!["navbar-menu", IF!(true => "is-active")],
+        view_navbar_menu_start(model),
+        view_navbar_menu_end(model),
+    ]
+}
+
+fn view_navbar_menu_start(model: &Model) -> Node<Msg> {
+    div![
+    C!["navbar-start"],
+        if let Some(current_user) = &model.current_user {
+            vec![
+                a![
+                    C!["navbar-item", IF!(matches!(&model.page, Page::Timeline(PageData::NotLoaded) ) => "is-active"),],
+                    attrs!{ At::Href => Page::Timeline(PageData::NotLoaded) },
+                    "Home",
+                ],
+                a![
+                    C!["navbar-item", IF!(matches!(&model.page, Page::UserProfile(_) ) => "is-active"),],
+                    &current_user.username,
+                    attrs! { At::Href => Page::UserProfile(current_user.username.clone()) }
+                ],
+                a![
+                    C!["navbar-item", IF!(matches!(&model.page, Page::PostEvent ) => "is-active"),],
+                    attrs!{ At::Href => Page::PostEvent },
+                    "Post Event",
+                ],
+            ]
+        } else {
+            vec![
+                a![
+                    C!["navbar-item", IF!(matches!(&model.page, Page::Timeline(PageData::NotLoaded) ) => "is-active"),],
+                    attrs!{ At::Href => Page::Timeline(PageData::NotLoaded) },
+                    "Home",
+                ]
+            ]
+        }
+    ]
+}
+
+fn view_navbar_menu_end(model: &Model) -> Node<Msg> {
+     div![
+        C!["navbar-end"],
+        div![
+            C!["navbar-item"],
+            div![
+                C!["buttons"],
+                if model.logged_in() {
+                    view_buttons_for_logged_in_user()
+                } else {
+                    view_buttons_for_anonymous_user()
+                }
+            ]
+        ]
+    ]
+}
+
+fn view_buttons_for_logged_in_user() -> Vec<Node<Msg>> {
+    vec![
+        a![
+            C!["button", "is-light"],
+            "Log out",
+            ev(Ev::Click, |_| Msg::Logout),
+        ]
+    ]
+}
+
+fn view_buttons_for_anonymous_user() -> Vec<Node<Msg>> {
+    vec![
+        a![
+            C!["button", "is-dark"],
+            strong!["Sign up"],
+            attrs!{ At::Href => Page::SignUp }
+        ],
+        a![
+            C!["button", "is-light"],
+            "Log in",
+            attrs!{ At::Href => Page::Login },
+        ]
+    ]
 }
 
 fn view_page(model: &Model) -> Node<Msg> {
@@ -108,31 +174,6 @@ fn flash(model: &Model) -> Node<Msg> {
     }
 }
 
-fn nav(model: &Model) -> Node<Msg> {
-    if let Some(current_user) = &model.current_user {
-        div![
-            a!["Home", attrs! { At::Href => Page::Timeline(PageData::NotLoaded) }],
-            " | ",
-            a!["Post Event", attrs! { At::Href => Page::PostEvent }],
-            " | ",
-            a![
-                &current_user.username,
-                attrs! { At::Href => Page::UserProfile(current_user.username.clone()) }
-            ],
-            " | ",
-            a!["Logout", ev(Ev::Click, |_| Msg::Logout), attrs! { At::Href => "" }],
-        ]
-    } else {
-        div![
-            a!["Home", attrs! { At::Href => Page::RootLoggedOut }],
-            " | ",
-            a!["Login", attrs! { At::Href => Page::Login }],
-            " | ",
-            a!["Sign up", attrs! { At::Href => Page::SignUp }],
-        ]
-    }
-}
-
 fn login(model: &Model) -> Node<Msg> {
     div![
         div![input![
@@ -150,11 +191,9 @@ fn login(model: &Model) -> Node<Msg> {
             },
         ]],
         div![
-            button![ev(Ev::Click, |_| Msg::LoginFormSubmitted), "Login"],
-            // model
-            //     .user
-            //     .as_ref()
-            //     .map(|user| div![format!("User: {:?}", user)])
+        C!["button"],
+            button![ev(Ev::Click, |_| Msg::LoginFormSubmitted), "Login", 
+            ],
         ],
     ]
 }
@@ -177,10 +216,6 @@ fn sign_up(model: &Model) -> Node<Msg> {
         ]],
         div![
             button![ev(Ev::Click, |_| Msg::SignUpFormSubmitted), "Sign Up"],
-            // model
-            //     .user
-            //     .as_ref()
-            //     .map(|user| div![format!("User: {:?}", user)])
         ],
     ]
 }
