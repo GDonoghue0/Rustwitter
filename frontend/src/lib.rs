@@ -124,8 +124,6 @@ impl Page {
     }
 
     fn from(mut url: Url, model: &Model) -> Self {
-        // let path = url.path().iter().map(|s| s.as_str()).collect::<Vec<_>>();
-
         match url.remaining_path_parts().as_slice() {
             ["signup"] => Page::SignUp,
             ["login"] => Page::Login,

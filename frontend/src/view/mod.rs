@@ -7,6 +7,8 @@ use seed::{prelude::*, *};
 // use std::fmt;
 use crate::flash::FlashMsg;
 
+const ENTER_KEY: &str = "Enter";
+
 // `view` describes what to display.
 pub fn view(model: &Model) -> Vec<Node<Msg>> {
     nodes![view_navbar(model), view_page(model), flash(model), ]
@@ -144,6 +146,9 @@ fn post_event(model: &Model) -> Node<Msg> {
                 At::Type => "text",
                 At::Placeholder => "Whats up?",
             },
+            keyboard_ev(Ev::KeyDown, |keyboard_event| {
+                IF!(keyboard_event.key() == ENTER_KEY => Msg::PostEventFormSubmitted)
+            }),
         ]],
         div![button![
             "Post",
@@ -189,6 +194,9 @@ fn login(model: &Model) -> Node<Msg> {
                 At::Type => "password",
                 At::Placeholder => "Password"
             },
+            keyboard_ev(Ev::KeyDown, |keyboard_event| {
+                IF!(keyboard_event.key() == ENTER_KEY => Msg::LoginFormSubmitted)
+            }),
         ]],
         div![
         C!["button"],
@@ -213,6 +221,9 @@ fn sign_up(model: &Model) -> Node<Msg> {
                 At::Type => "password",
                 At::Placeholder => "Password"
             },
+            keyboard_ev(Ev::KeyDown, |keyboard_event| {
+                IF!(keyboard_event.key() == ENTER_KEY => Msg::SignUpFormSubmitted)
+            }),
         ]],
         div![
             button![ev(Ev::Click, |_| Msg::SignUpFormSubmitted), "Sign Up"],
